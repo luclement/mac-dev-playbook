@@ -1,28 +1,45 @@
 ---
-# Custom Terminal theme.
-- name: Get current Terminal profile.
-  command: defaults read com.apple.terminal 'Default Window Settings'
-  register: terminal_theme
-  changed_when: false
-  check_mode: false
+- name: Install Oh My Zsh # noqa: latest
+  ansible.builtin.git:
+    repo: https://github.com/ohmyzsh/ohmyzsh.git
+    dest: ~/.oh-my-zsh
+    depth: 1
 
-- name: Ensure custom Terminal profile is added.
-  copy:
-    src: files/terminal/JJG-Term.terminal
-    dest: /tmp/JJG-Term.terminal
-  changed_when: false
-  when: "'JJG-Term' not in terminal_theme.stdout"
+- name: Set ZSH_CUSTOM env var
+  ansible.builtin.set_fact: zsh_custom="{{ lookup('ansible.builtin.env', 'ZSH_CUSTOM', default='~/.oh-my-zsh/custom') }}"
+ 
+- name: Install zsh-autosuggestions plugin # noqa: latest
+  ansible.builtin.git:
+    repo: https://github.com/zsh-users/zsh-autosuggestions
+    dest: "{{zsh_custom}}/plugins/zsh-autosuggestions"
+    depth: 1
 
-- name: Ensure custom Terminal profile is added.
-  command: open /tmp/JJG-Term.terminal
-  changed_when: false
-  when: "'JJG-Term' not in terminal_theme.stdout"
+- name: Install zsh-history-substring-search plugin # noqa: latest
+  ansible.builtin.git:
+    repo: https://github.com/zsh-users/zsh-history-substring-search
+    dest: "{{zsh_custom}}/plugins/zsh-history-substring-search"
+    depth: 1
+ 
+- name: Install zsh-syntax-highlighting plugin # noqa: latest
+  ansible.builtin.git:
+    repo: https://github.com/zsh-users/zsh-syntax-highlighting.git
+    dest: "{{zsh_custom}}/plugins/zsh-syntax-highlighting"
+    depth: 1
 
-# TODO: This doesn't work in Yosemite. Consider a different solution?
-- name: Ensure custom Terminal profile is set as default.
-  command: "{{ item }}"
-  with_items:
-    - defaults write com.apple.terminal 'Default Window Settings' -string JJG-Term
-    - defaults write com.apple.terminal 'Startup Window Settings' -string JJG-Term
-  changed_when: false
-  when: "'JJG-Term' not in terminal_theme.stdout"
+- name: Install spaceship theme
+  ansible.builtin.git:
+    repo: https://github.com/spaceship-prompt/spaceship-prompt.git
+    dest: "{{zsh_custom}}/themes/spaceship-prompt"
+    depth: 1
+
+- name: Symlink spaceship.zsh-theme to oh-my-zsh custom themes directory
+  file:
+    src: "{{zsh_custom}}/themes/spaceship-prompt/spaceship.zsh-theme"
+    dest: "{{zsh_custom}}/themes/spaceship.zsh-theme"
+    state: link
+
+- name: Install Vundle
+  ansible.builtin.git:
+    repo: https://github.com/VundleVim/Vundle.vim.git
+    dest: "~/.vim/bundle/Vundle.vim"
+    depth: 1

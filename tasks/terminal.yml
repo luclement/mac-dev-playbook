@@ -43,3 +43,9 @@
     repo: https://github.com/VundleVim/Vundle.vim.git
     dest: "~/.vim/bundle/Vundle.vim"
     depth: 1
+
+- name: Install Vim plugins
+  command: vim -E -s -c "source $HOME/.vimrc" -c PluginInstall -c qa
+
+- name: Install YCMD
+  command: cd ~/.vim/bundle/YouCompleteMe && python3 install.py
